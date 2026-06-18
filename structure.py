@@ -288,4 +288,4 @@ def handle_upload(contents: str | None, filename: str | None):
 if __name__ == "__main__":
     import os
     port = int(os.environ.get("PORT", 8060))
-    app.run(debug=True, port=port)
+    app.run(debug=False, port=port)

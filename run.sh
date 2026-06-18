@@ -33,50 +33,113 @@ show_help() {
     echo -e "${BOLD}Usage:${NC} $0 [options]"
     echo ""
     echo -e "${BOLD}Options:${NC}"
+    echo -e "  ${GREEN}-s, --setup${NC}        Setup virtual environment, install dependencies, and run"
     echo -e "  ${GREEN}-v, --view${NC}         Run structure.py to view a single crystal structure"
     echo -e "  ${GREEN}-c, --compare${NC}      Run comparison.py to compare multiple crystal structures"
     echo -e "  ${GREEN}-p, --port PORT${NC}    Configure a custom port to run the application on"
-    echo -e "  ${GREEN}-s, --setup${NC}        Setup/rebuild the virtual environment and dependencies"
     echo -e "  ${GREEN}-h, --help${NC}         Display this help message"
     echo ""
     echo -e "If no options are provided, the script launches in ${BOLD}Interactive Mode${NC}."
+}
+
+# Find a suitable Python 3 interpreter (>= 3.10) that can create venvs
+find_python() {
+    # List of candidate interpreters to try, in priority order
+    local candidates=(
+        "/Library/Frameworks/Python.framework/Versions/3.13/bin/python3"
+        "/Library/Frameworks/Python.framework/Versions/3.12/bin/python3"
+        "/Library/Frameworks/Python.framework/Versions/3.11/bin/python3"
+        "/Library/Frameworks/Python.framework/Versions/3.10/bin/python3"
+        "/opt/homebrew/bin/python3"
+        "/usr/local/bin/python3"
+        "/usr/bin/python3"
+    )
+    # Also add any python3.XX variants found in PATH
+    for ver in 13 12 11 10; do
+        local p
+        p=$(command -v "python3.${ver}" 2>/dev/null) && candidates+=("$p")
+    done
+
+    for candidate in "${candidates[@]}"; do
+        if [ -x "$candidate" ]; then
+            # Check version >= 3.10
+            local ver
+            ver=$("$candidate" -c 'import sys; v=sys.version_info; print(f"{v.major}.{v.minor}")' 2>/dev/null) || continue
+            local major minor
+            major=$(echo "$ver" | cut -d. -f1)
+            minor=$(echo "$ver" | cut -d. -f2)
+            if [ "$major" -ge 3 ] && [ "$minor" -ge 10 ] 2>/dev/null; then
+                # Quick test: can it create a venv?
+                local tmpdir
+                tmpdir=$(mktemp -d)
+                if "$candidate" -m venv "$tmpdir/test_venv" 2>/dev/null; then
+                    rm -rf "$tmpdir"
+                    echo "$candidate"
+                    return 0
+                fi
+                rm -rf "$tmpdir"
+            fi
+        fi
+    done
+    return 1
 }
 
 # Perform validation & setup of virtual environment
 setup_venv() {
     echo -e "\n${YELLOW}${BOLD}[*] Setting up Python Virtual Environment...${NC}"
     
-    # Check if python3 is installed
+    # Check if python3 is installed at all
     if ! command -v python3 &> /dev/null; then
         echo -e "${RED}${BOLD}[ERROR] python3 is not installed or not in PATH. Please install Python 3 (3.10+ recommended).${NC}"
-        exit 1
+        read -p "Press Enter to return to the menu..."
+        return 1
     fi
     
-    # Check python3 version
-    PYTHON_VER=$(python3 -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')
-    echo -e "${GREEN}[INFO] Found Python version: $PYTHON_VER${NC}"
-    
     if [ ! -d "$VENV_DIR" ]; then
-        echo -e "${BLUE}[INFO] Creating new virtual environment at $VENV_DIR...${NC}"
-        python3 -m venv "$VENV_DIR"
+        echo -e "${BLUE}[INFO] Searching for a suitable Python interpreter...${NC}"
+        
+        PYTHON_BIN=$(find_python)
+        if [ -n "$PYTHON_BIN" ]; then
+            PYTHON_VER=$("$PYTHON_BIN" -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')
+            echo -e "${GREEN}[INFO] Using Python $PYTHON_VER ($PYTHON_BIN)${NC}"
+            echo -e "${BLUE}[INFO] Creating new virtual environment at $VENV_DIR...${NC}"
+            "$PYTHON_BIN" -m venv "$VENV_DIR" || { echo -e "${RED}[ERROR] Failed to create virtual environment.${NC}"; read -p "Press Enter to return to the menu..."; return 1; }
+        else
+            # Fallback: create venv without pip and bootstrap pip manually
+            PYTHON_VER=$(python3 -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')
+            echo -e "${YELLOW}[WARN] No standard Python could create a venv with pip. Falling back to manual bootstrap...${NC}"
+            echo -e "${GREEN}[INFO] Using Python $PYTHON_VER ($(command -v python3))${NC}"
+            echo -e "${BLUE}[INFO] Creating virtual environment without pip...${NC}"
+            python3 -m venv --without-pip "$VENV_DIR" || { echo -e "${RED}[ERROR] Failed to create virtual environment.${NC}"; read -p "Press Enter to return to the menu..."; return 1; }
+            echo -e "${BLUE}[INFO] Bootstrapping pip via get-pip.py...${NC}"
+            curl -sS https://bootstrap.pypa.io/get-pip.py -o "$VENV_DIR/get-pip.py" || { echo -e "${RED}[ERROR] Failed to download get-pip.py. Check your internet connection.${NC}"; rm -rf "$VENV_DIR"; read -p "Press Enter to return to the menu..."; return 1; }
+            "$VENV_DIR/bin/python" "$VENV_DIR/get-pip.py" --quiet || { echo -e "${RED}[ERROR] Failed to install pip.${NC}"; rm -rf "$VENV_DIR"; read -p "Press Enter to return to the menu..."; return 1; }
+            rm -f "$VENV_DIR/get-pip.py"
+        fi
     else
         echo -e "${GREEN}[INFO] Virtual environment directory already exists.${NC}"
     fi
     
     echo -e "${BLUE}[INFO] Upgrading pip...${NC}"
-    "$VENV_DIR/bin/pip" install --upgrade pip
+    "$VENV_DIR/bin/pip" install --upgrade pip || { echo -e "${RED}[ERROR] Failed to upgrade pip.${NC}"; read -p "Press Enter to return to the menu..."; return 1; }
     
     if [ -f "$REQ_FILE" ]; then
         echo -e "${BLUE}[INFO] Installing dependencies from $REQ_FILE...${NC}"
-        "$VENV_DIR/bin/pip" install -r "$REQ_FILE"
+        "$VENV_DIR/bin/pip" install -r "$REQ_FILE" || { echo -e "${RED}[ERROR] Failed to install dependencies from $REQ_FILE.${NC}"; read -p "Press Enter to return to the menu..."; return 1; }
     else
         echo -e "${YELLOW}[WARN] requirements.txt not found. Installing default packages...${NC}"
-        "$VENV_DIR/bin/pip" install dash ase pymatgen crystal-toolkit
+        "$VENV_DIR/bin/pip" install dash ase pymatgen crystal-toolkit || { echo -e "${RED}[ERROR] Failed to install default packages.${NC}"; read -p "Press Enter to return to the menu..."; return 1; }
         # Save state
         "$VENV_DIR/bin/pip" freeze > "$REQ_FILE"
     fi
     
-    echo -e "${GREEN}${BOLD}[SUCCESS] Virtual environment setup completed successfully!${NC}\n"
+    # Activate virtual environment
+    if [ -f "$VENV_DIR/bin/activate" ]; then
+        echo -e "${BLUE}[INFO] Activating virtual environment...${NC}"
+        source "$VENV_DIR/bin/activate"
+    fi
+    
+    echo -e "${GREEN}${BOLD}[SUCCESS] Virtual environment setup completed successfully and activated!${NC}\n"
 }
 
 # Verify if virtual environment is ready; prompt user to create it if not
@@ -94,6 +157,11 @@ check_venv() {
                 exit 1
                 ;;
         esac
+    else
+        # If it already exists, activate it
+        if [ -f "$VENV_DIR/bin/activate" ]; then
+            source "$VENV_DIR/bin/activate"
+        fi
     fi
 }
 
@@ -106,6 +174,7 @@ run_view() {
     echo -e "${YELLOW}[*] Press Ctrl+C to terminate the server.${NC}\n"
     
     PORT=$active_port "$VENV_DIR/bin/python" "$SCRIPT_DIR/structure.py"
+    read -p "Press Enter to return to the menu..."
 }
 
 # Launch comparison.py
@@ -117,6 +186,7 @@ run_compare() {
     echo -e "${YELLOW}[*] Press Ctrl+C to terminate the server.${NC}\n"
     
     PORT=$active_port "$VENV_DIR/bin/python" "$SCRIPT_DIR/comparison.py"
+    read -p "Press Enter to return to the menu..."
 }
 
 # Set a custom port
@@ -178,6 +248,9 @@ if [ -n "$ACTION" ]; then
             ;;
         setup)
             setup_venv
+            if [ $? -eq 0 ]; then
+                run_view
+            fi
             ;;
     esac
     exit 0
@@ -188,27 +261,29 @@ while true; do
     print_banner
     echo -e "   ${BOLD}Configure & Run Applications:${NC}"
     echo -e "   -----------------------------"
-    echo -e "   ${CYAN}1)${NC} View Single Structure ${BLUE}(runs structure.py on port ${CUSTOM_PORT:-$PORT_VIEW})${NC}"
-    echo -e "   ${CYAN}2)${NC} Compare Multiple Structures ${BLUE}(runs comparison.py on port ${CUSTOM_PORT:-$PORT_COMPARE})${NC}"
-    echo -e "   ${CYAN}3)${NC} Configure Custom Port ${YELLOW}(current: ${CUSTOM_PORT:-defaults [View:$PORT_VIEW, Compare:$PORT_COMPARE]})${NC}"
-    echo -e "   ${CYAN}4)${NC} Setup/Re-build Virtual Environment ${MAGENTA}(.venv)${NC}"
+    echo -e "   ${CYAN}1)${NC} Create Virtual Environment & Install Dependencies ${MAGENTA}(.venv)${NC}"
+    echo -e "   ${CYAN}2)${NC} View Single Structure ${BLUE}(runs structure.py on port ${CUSTOM_PORT:-$PORT_VIEW})${NC}"
+    echo -e "   ${CYAN}3)${NC} Compare Multiple Structures ${BLUE}(runs comparison.py on port ${CUSTOM_PORT:-$PORT_COMPARE})${NC}"
+    echo -e "   ${CYAN}4)${NC} Configure Custom Port ${YELLOW}(current: ${CUSTOM_PORT:-defaults [View:$PORT_VIEW, Compare:$PORT_COMPARE]})${NC}"
     echo -e "   ${CYAN}5)${NC} Exit"
     echo -e "${CYAN}================================================================${NC}"
     read -p "Select an option [1-5]: " menu_choice
     
     case "$menu_choice" in
         1)
-            run_view
+            setup_venv
+            if [ $? -eq 0 ]; then
+                run_view
+            fi
             ;;
         2)
-            run_compare
+            run_view
             ;;
         3)
-            configure_port
+            run_compare
             ;;
         4)
-            setup_venv
-            read -p "Press Enter to return to the menu..."
+            configure_port
             ;;
         5)
             echo -e "${GREEN}Thank you for using Twente Crystal Visualizer & Comparison CLI! Goodbye.${NC}"
