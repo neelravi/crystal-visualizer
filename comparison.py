@@ -15,9 +15,37 @@ app = dash.Dash(assets_folder=SETTINGS.ASSETS_PATH)
 
 # 1. Define your folder paths pointing directly to the pw_scf.in files
 STRUCTURE_PATHS = {
+    "Disp 0.00 (PBE0)": "/Volumes/UT-Disk-2/lithium-fluoride/saverio_geom_direction_111_disp_empty_states_40_disp_0.00/final_geo/pw_scf.in",
+    "Disp 0.02 (PBE0)": "/Volumes/UT-Disk-2/lithium-fluoride/saverio_geom_direction_111_disp_empty_states_40_disp_0.02/final_geo/pw_scf.in",
+    "Disp 0.04 (PBE0)": "/Volumes/UT-Disk-2/lithium-fluoride/saverio_geom_direction_111_disp_empty_states_40_disp_0.04/final_geo/pw_scf.in",
+    "Disp 0.06 (PBE0)": "/Volumes/UT-Disk-2/lithium-fluoride/saverio_geom_direction_111_disp_empty_states_40_disp_0.06/final_geo/pw_scf.in",
+    "Disp 0.08 (PBE0)": "/Volumes/UT-Disk-2/lithium-fluoride/saverio_geom_direction_111_disp_empty_states_40_disp_0.08/final_geo/pw_scf.in",
+    "Disp 0.10 (PBE0)": "/Volumes/UT-Disk-2/lithium-fluoride/saverio_geom_direction_111_disp_empty_states_40_disp_0.10/final_geo/pw_scf.in",
+    "Disp 0.12 (PBE0)": "/Volumes/UT-Disk-2/lithium-fluoride/saverio_geom_direction_111_disp_empty_states_40_disp_0.12/final_geo/pw_scf.in",
+    "Disp 0.14 (PBE0)": "/Volumes/UT-Disk-2/lithium-fluoride/saverio_geom_direction_111_disp_empty_states_40_disp_0.14/final_geo/pw_scf.in",
+    "Disp 0.16 (PBE0)": "/Volumes/UT-Disk-2/lithium-fluoride/saverio_geom_direction_111_disp_empty_states_40_disp_0.16/final_geo/pw_scf.in",
+    "Disp 0.18 (PBE0)": "/Volumes/UT-Disk-2/lithium-fluoride/saverio_geom_direction_111_disp_empty_states_40_disp_0.18/final_geo/pw_scf.in",
+    "Disp 0.20 (PBE0)": "/Volumes/UT-Disk-2/lithium-fluoride/saverio_geom_direction_111_disp_empty_states_40_disp_0.20/final_geo/pw_scf.in",
+    "Disp 0.30 (PBE0)": "/Volumes/UT-Disk-2/lithium-fluoride/saverio_geom_direction_111_disp_empty_states_40_disp_0.30/final_geo/pw_scf.in",
+    "Disp 0.40 (PBE0)": "/Volumes/UT-Disk-2/lithium-fluoride/saverio_geom_direction_111_disp_empty_states_40_disp_0.40/final_geo/pw_scf.in",
+    "Disp 0.50 (PBE0)": "/Volumes/UT-Disk-2/lithium-fluoride/saverio_geom_direction_111_disp_empty_states_40_disp_0.50/final_geo/pw_scf.in",
+    "Disp 0.60 (PBE0)": "/Volumes/UT-Disk-2/lithium-fluoride/saverio_geom_direction_111_disp_empty_states_40_disp_0.60/final_geo/pw_scf.in",
+    "Disp 0.70 (PBE0)": "/Volumes/UT-Disk-2/lithium-fluoride/saverio_geom_direction_111_disp_empty_states_40_disp_0.70/final_geo/pw_scf.in",
+    "Disp 0.80 (PBE0)": "/Volumes/UT-Disk-2/lithium-fluoride/saverio_geom_direction_111_disp_empty_states_40_disp_0.80/final_geo/pw_scf.in",
+    "Disp 0.90 (PBE0)": "/Volumes/UT-Disk-2/lithium-fluoride/saverio_geom_direction_111_disp_empty_states_40_disp_0.90/final_geo/pw_scf.in",
     "Disp 1.00 (PBE0)": "/Volumes/UT-Disk-2/lithium-fluoride/saverio_geom_direction_111_disp_empty_states_40_disp_1.00/final_geo/pw_scf.in",
+    "Disp 1.10 (PBE0)": "/Volumes/UT-Disk-2/lithium-fluoride/saverio_geom_direction_111_disp_empty_states_40_disp_1.10/final_geo/pw_scf.in",
     "Disp 1.20 (PBE0)": "/Volumes/UT-Disk-2/lithium-fluoride/saverio_geom_direction_111_disp_empty_states_40_disp_1.20/final_geo/pw_scf.in",
+    "Disp 1.30 (PBE0)": "/Volumes/UT-Disk-2/lithium-fluoride/saverio_geom_direction_111_disp_empty_states_40_disp_1.30/final_geo/pw_scf.in",
+    "Disp 1.40 (PBE0)": "/Volumes/UT-Disk-2/lithium-fluoride/saverio_geom_direction_111_disp_empty_states_40_disp_1.40/final_geo/pw_scf.in",
+    "Disp 1.50 (PBE0)": "/Volumes/UT-Disk-2/lithium-fluoride/saverio_geom_direction_111_disp_empty_states_40_disp_1.50/final_geo/pw_scf.in",
+    "Disp 1.60 (PBE0)": "/Volumes/UT-Disk-2/lithium-fluoride/saverio_geom_direction_111_disp_empty_states_40_disp_1.60/final_geo/pw_scf.in",
+    "Disp 1.70 (PBE0)": "/Volumes/UT-Disk-2/lithium-fluoride/saverio_geom_direction_111_disp_empty_states_40_disp_1.70/final_geo/pw_scf.in",
+    "Disp 1.80 (PBE0)": "/Volumes/UT-Disk-2/lithium-fluoride/saverio_geom_direction_111_disp_empty_states_40_disp_1.80/final_geo/pw_scf.in",
+    "Disp 1.90 (PBE0)": "/Volumes/UT-Disk-2/lithium-fluoride/saverio_geom_direction_111_disp_empty_states_40_disp_1.90/final_geo/pw_scf.in",
+    "Disp 2.00 (PBE0)": "/Volumes/UT-Disk-2/lithium-fluoride/saverio_geom_direction_111_disp_empty_states_40_disp_2.00/final_geo/pw_scf.in",
 }
+
 
 
 # 2. Parse using ASE and convert to Pymatgen structures in memory
@@ -35,17 +63,31 @@ init_struct = list(loaded_structures.values())[0]
 init_graph = StructureGraph.from_empty_graph(init_struct)
 
 # 3. Instantiate the view panels for Structure Row 1 and Row 2
-custom_scene_settings_x = {"showBonds": False, "showPolyhedra": False, "cameraAxis": "x"}
-custom_scene_settings_y = {"showBonds": False, "showPolyhedra": False, "cameraAxis": "y"}
-custom_scene_settings_z = {"showBonds": False, "showPolyhedra": False, "cameraAxis": "z"}
+custom_scene_settings = {"showBonds": False, "showPolyhedra": False}
 
-comp_1x = ctc.StructureMoleculeComponent(init_graph, id="struct_1x", scene_settings=custom_scene_settings_x)
-comp_1y = ctc.StructureMoleculeComponent(init_graph, id="struct_1y", scene_settings=custom_scene_settings_y)
-comp_1z = ctc.StructureMoleculeComponent(init_graph, id="struct_1z", scene_settings=custom_scene_settings_z)
+camera_state_x = {
+    "position": {"x": 25, "y": 0, "z": 0},
+    "quaternion": {"x": 0.5, "y": 0.5, "z": 0.5, "w": 0.5},
+    "zoom": 4.0
+}
+camera_state_y = {
+    "position": {"x": 0, "y": 25, "z": 0},
+    "quaternion": {"x": 0.5, "y": 0.5, "z": 0.5, "w": -0.5},
+    "zoom": 4.0
+}
+camera_state_z = {
+    "position": {"x": 0, "y": 0, "z": 25},
+    "quaternion": {"x": 0.0, "y": 0.0, "z": 0.0, "w": 1.0},
+    "zoom": 4.0
+}
 
-comp_2x = ctc.StructureMoleculeComponent(init_graph, id="struct_2x", scene_settings=custom_scene_settings_x)
-comp_2y = ctc.StructureMoleculeComponent(init_graph, id="struct_2y", scene_settings=custom_scene_settings_y)
-comp_2z = ctc.StructureMoleculeComponent(init_graph, id="struct_2z", scene_settings=custom_scene_settings_z)
+comp_1x = ctc.StructureMoleculeComponent(init_graph, id="struct_1x", scene_settings=custom_scene_settings, scene_kwargs={"customCameraState": camera_state_x})
+comp_1y = ctc.StructureMoleculeComponent(init_graph, id="struct_1y", scene_settings=custom_scene_settings, scene_kwargs={"customCameraState": camera_state_y})
+comp_1z = ctc.StructureMoleculeComponent(init_graph, id="struct_1z", scene_settings=custom_scene_settings, scene_kwargs={"customCameraState": camera_state_z})
+
+comp_2x = ctc.StructureMoleculeComponent(init_graph, id="struct_2x", scene_settings=custom_scene_settings, scene_kwargs={"customCameraState": camera_state_x})
+comp_2y = ctc.StructureMoleculeComponent(init_graph, id="struct_2y", scene_settings=custom_scene_settings, scene_kwargs={"customCameraState": camera_state_y})
+comp_2z = ctc.StructureMoleculeComponent(init_graph, id="struct_2z", scene_settings=custom_scene_settings, scene_kwargs={"customCameraState": camera_state_z})
 
 
 # 5. Row UI Builder Helper
@@ -152,6 +194,72 @@ def toggle_orientations(checkbox_value):
     else:
         hide_col = {"display": "none"}
         return hide_col, hide_col, "Interactive View", hide_col, hide_col, "Interactive View"
+
+
+import json
+
+# Clientside callbacks to force camera state on scene data update
+for scene_id, camera_state in [
+    ("CTstruct_1x_scene", camera_state_x),
+    ("CTstruct_1y_scene", camera_state_y),
+    ("CTstruct_1z_scene", camera_state_z),
+    ("CTstruct_2x_scene", camera_state_x),
+    ("CTstruct_2y_scene", camera_state_y),
+    ("CTstruct_2z_scene", camera_state_z),
+]:
+    app.clientside_callback(
+        f"""
+        function(data) {{
+            if (!data) return window.dash_clientside.no_update;
+            
+            // Schedule camera up vector and controls update after rendering
+            setTimeout(() => {{
+                const el = document.getElementById("{scene_id}");
+                if (!el) return;
+                
+                // Find the 'uj' (Three.js viewer) instance in el's React fiber tree
+                const fiberKey = Object.keys(el).find(k => k.startsWith('__reactFiber$') || k.startsWith('__reactInternalInstance$'));
+                if (!fiberKey) return;
+                
+                let fiber = el[fiberKey];
+                let uj = null;
+                while (fiber) {{
+                    let hook = fiber.memoizedState;
+                    while (hook) {{
+                        if (hook.memoizedState && typeof hook.memoizedState === 'object') {{
+                            const val = hook.memoizedState.current;
+                            if (val && typeof val === 'object' && val.camera && val.controls) {{
+                                uj = val;
+                                break;
+                            }}
+                        }}
+                        hook = hook.next;
+                    }}
+                    if (uj) break;
+                    fiber = fiber.return;
+                }}
+                
+                if (uj) {{
+                    // Set the correct camera up vector corresponding to the orientation view
+                    if ("{scene_id}".includes('x_scene')) {{
+                        uj.camera.up.set(0, 0, 1);
+                    }} else if ("{scene_id}".includes('y_scene')) {{
+                        uj.camera.up.set(1, 0, 0);
+                    }} else if ("{scene_id}".includes('z_scene')) {{
+                        uj.camera.up.set(0, 1, 0);
+                    }}
+                    uj.controls.target.set(0, 0, 0);
+                    uj.controls.update();
+                    uj.renderScene();
+                }}
+            }}, 150);
+            
+            return {json.dumps(camera_state)};
+        }}
+        """,
+        Output(scene_id, "customCameraState"),
+        Input(scene_id, "data")
+    )
 
 
 if __name__ == "__main__":
