@@ -81,13 +81,14 @@ camera_state_z = {
     "zoom": 4.0
 }
 
-comp_1x = ctc.StructureMoleculeComponent(init_graph, id="struct_1x", scene_settings=custom_scene_settings, scene_kwargs={"customCameraState": camera_state_x})
-comp_1y = ctc.StructureMoleculeComponent(init_graph, id="struct_1y", scene_settings=custom_scene_settings, scene_kwargs={"customCameraState": camera_state_y})
-comp_1z = ctc.StructureMoleculeComponent(init_graph, id="struct_1z", scene_settings=custom_scene_settings, scene_kwargs={"customCameraState": camera_state_z})
+comp_1x = ctc.StructureMoleculeComponent(init_graph, id="struct_1x", scene_settings=custom_scene_settings)
+comp_1y = ctc.StructureMoleculeComponent(init_graph, id="struct_1y", scene_settings=custom_scene_settings)
+comp_1z = ctc.StructureMoleculeComponent(init_graph, id="struct_1z", scene_settings=custom_scene_settings)
 
-comp_2x = ctc.StructureMoleculeComponent(init_graph, id="struct_2x", scene_settings=custom_scene_settings, scene_kwargs={"customCameraState": camera_state_x})
-comp_2y = ctc.StructureMoleculeComponent(init_graph, id="struct_2y", scene_settings=custom_scene_settings, scene_kwargs={"customCameraState": camera_state_y})
-comp_2z = ctc.StructureMoleculeComponent(init_graph, id="struct_2z", scene_settings=custom_scene_settings, scene_kwargs={"customCameraState": camera_state_z})
+comp_2x = ctc.StructureMoleculeComponent(init_graph, id="struct_2x", scene_settings=custom_scene_settings)
+comp_2y = ctc.StructureMoleculeComponent(init_graph, id="struct_2y", scene_settings=custom_scene_settings)
+comp_2z = ctc.StructureMoleculeComponent(init_graph, id="struct_2z", scene_settings=custom_scene_settings)
+
 
 
 # 5. Row UI Builder Helper
@@ -212,49 +213,85 @@ for scene_id, camera_state in [
         function(data) {{
             if (!data) return window.dash_clientside.no_update;
             
-            // Schedule camera up vector and controls update after rendering
-            setTimeout(() => {{
+            let attempts = 0;
+            const interval = setInterval(() => {{
+                attempts++;
                 const el = document.getElementById("{scene_id}");
-                if (!el) return;
+                if (!el && attempts < 50) return;
                 
                 // Find the 'uj' (Three.js viewer) instance in el's React fiber tree
-                const fiberKey = Object.keys(el).find(k => k.startsWith('__reactFiber$') || k.startsWith('__reactInternalInstance$'));
-                if (!fiberKey) return;
-                
-                let fiber = el[fiberKey];
+                const fiberKey = Object.keys(el || {{}}).find(k => k.startsWith('__reactFiber$') || k.startsWith('__reactInternalInstance$'));
                 let uj = null;
-                while (fiber) {{
-                    let hook = fiber.memoizedState;
-                    while (hook) {{
-                        if (hook.memoizedState && typeof hook.memoizedState === 'object') {{
-                            const val = hook.memoizedState.current;
-                            if (val && typeof val === 'object' && val.camera && val.controls) {{
-                                uj = val;
-                                break;
+                if (fiberKey) {{
+                    let fiber = el[fiberKey];
+                    while (fiber) {{
+                        let hook = fiber.memoizedState;
+                        while (hook) {{
+                            if (hook.memoizedState && typeof hook.memoizedState === 'object') {{
+                                const val = hook.memoizedState.current;
+                                if (val && typeof val === 'object' && val.camera && val.controls) {{
+                                    uj = val;
+                                    break;
+                                }}
                             }}
+                            hook = hook.next;
                         }}
-                        hook = hook.next;
+                        if (uj) break;
+                        fiber = fiber.return;
                     }}
-                    if (uj) break;
-                    fiber = fiber.return;
                 }}
                 
-                if (uj) {{
-                    // Set the correct camera up vector corresponding to the orientation view
-                    if ("{scene_id}".includes('x_scene')) {{
-                        uj.camera.up.set(0, 0, 1);
-                    }} else if ("{scene_id}".includes('y_scene')) {{
-                        uj.camera.up.set(1, 0, 0);
-                    }} else if ("{scene_id}".includes('z_scene')) {{
-                        uj.camera.up.set(0, 1, 0);
+                if (uj || attempts >= 50) {{
+                    clearInterval(interval);
+                    if (uj) {{
+                        const camera_state = {json.dumps(camera_state)};
+                        
+                        // Override setupCamera to ensure it always uses our correct parameters and never resets to Z-view
+                        uj.setupCamera = function(e) {{
+                            this.camera.position.set(camera_state.position.x, camera_state.position.y, camera_state.position.z);
+                            this.camera.quaternion.set(camera_state.quaternion.x, camera_state.quaternion.y, camera_state.quaternion.z, camera_state.quaternion.w);
+                            this.camera.zoom = camera_state.zoom;
+                            
+                            if ("{scene_id}".includes('x_scene')) {{
+                                this.camera.up.set(0, 0, 1);
+                            }} else if ("{scene_id}".includes('y_scene')) {{
+                                this.camera.up.set(1, 0, 0);
+                            }} else if ("{scene_id}".includes('z_scene')) {{
+                                this.camera.up.set(0, 1, 0);
+                            }}
+                            this.camera.updateProjectionMatrix();
+                            this.controls.target.set(0, 0, 0);
+                            this.controls.update();
+                            this.renderScene();
+                        }};
+                        
+                        // Call the overridden setupCamera once to apply immediately
+                        uj.setupCamera();
+                        
+                        // Ensure controls are resized correctly once the element is displayed and has non-zero size
+                        if (uj.controls && typeof uj.controls.handleResize === 'function') {{
+                            uj.controls.handleResize();
+                        }}
+                        
+                        // Add event listeners on pointer down, touch start, and wheel events
+                        // to dynamically handle resize when user starts interacting
+                        const canvas = el.querySelector("canvas");
+                        if (canvas && !canvas._resizeListenerAdded) {{
+                            const triggerResize = () => {{
+                                if (uj.controls && typeof uj.controls.handleResize === 'function') {{
+                                    uj.controls.handleResize();
+                                }}
+                            }};
+                            canvas.addEventListener("pointerdown", triggerResize, {{ passive: true }});
+                            canvas.addEventListener("touchstart", triggerResize, {{ passive: true }});
+                            canvas.addEventListener("wheel", triggerResize, {{ passive: true }});
+                            canvas._resizeListenerAdded = true;
+                        }}
                     }}
-                    uj.controls.target.set(0, 0, 0);
-                    uj.controls.update();
-                    uj.renderScene();
                 }}
-            }}, 150);
+            }}, 50);
             
-            return {json.dumps(camera_state)};
+            return window.dash_clientside.no_update;
         }}
         """,
         Output(scene_id, "customCameraState"),
