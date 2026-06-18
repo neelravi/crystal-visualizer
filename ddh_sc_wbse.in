@@ -1,0 +1,24 @@
+input_west:
+  qe_prefix: ddh 
+  west_prefix: ddh_west
+  outdir: ./
+
+wbse_init_control:
+  wbse_init_calculation: S
+  solver: TDDFT
+  localization: W
+  overlap_thr: 0.001
+
+wbse_control:
+  wbse_calculation: D
+  n_liouville_eigen: 40
+  n_liouville_maxiter: 300
+  trev_liouville: 0.000005
+  trev_liouville_rel: 0.00001  
+  l_pre_shift: False
+  l_preconditioning: True
+  l_forces: True
+  forces_state: 1
+  n_exx_lowrank: 200
+
+

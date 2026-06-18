@@ -286,4 +286,6 @@ def handle_upload(contents: str | None, filename: str | None):
         return dash.no_update, error_msg, dash.no_update, dash.no_update
 
 if __name__ == "__main__":
-    app.run(debug=True, port=8060)
+    import os
+    port = int(os.environ.get("PORT", 8060))
+    app.run(debug=True, port=port)
