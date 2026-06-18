@@ -1,0 +1,53 @@
+&CONTROL
+    calculation   = 'scf'
+    prefix        = 'ddh'
+    outdir        = './'
+    pseudo_dir    = '../pseudo/'
+    tprnfor       = .true.
+/
+
+&SYSTEM
+    ibrav         = 0             
+    nat           = 8             
+    ntyp          = 2             
+
+    input_dft     = 'PBE0'
+    exx_fraction  = 0.25
+    exxdiv_treatment = 'gygi-baldereschi'
+
+    ecutfock      = 100.0    
+    ecutwfc       = 80.0          
+    ecutrho       = 320.0         
+    
+    nosym             = .true.
+    nbnd              = 400
+/
+
+&ELECTRONS
+    conv_thr       = 1.0d-8
+    mixing_beta    = 0.7
+    diago_full_acc = .true.
+    electron_maxstep = 200
+/
+
+ATOMIC_SPECIES
+    Li   6.941 Li_ONCV_PBE-1.2.upf 
+    F   18.998 F_ONCV_PBE-1.2.upf
+
+CELL_PARAMETERS angstrom
+   4.061016752   0.000000000   0.000000000
+   0.000000000   4.061016752   0.000000000
+   0.000000000   0.000000000   4.061016752
+
+K_POINTS gamma
+
+ATOMIC_POSITIONS angstrom
+Li   0.033751379867   0.048590295508   0.049129206787
+Li   2.078426072850   2.063983103748   0.047736623154
+Li   -0.009805813057   2.019387188285   2.020008791772
+Li   2.079488546926   0.048247435321   2.063820469436
+F   2.206236336688   0.179143728372   0.178592855166
+F   -0.061610412517   1.969514520153   0.072121763780
+F   -0.058815761190   0.070474050488   1.969570029239
+F   2.098779729141   1.967109698316   1.965470280833
+
